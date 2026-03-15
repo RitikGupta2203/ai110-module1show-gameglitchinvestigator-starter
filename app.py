@@ -1,6 +1,7 @@
 import random
 import streamlit as st
 
+# FIXME: Logic breaks here
 def get_range_for_difficulty(difficulty: str):
     if difficulty == "Easy":
         return 1, 20
@@ -34,6 +35,7 @@ def check_guess(guess, secret):
         return "Win", "🎉 Correct!"
 
     try:
+        # FIXME: Logic breaks here
         if guess > secret:
             return "Too High", "📈 Go HIGHER!"
         else:
@@ -131,9 +133,21 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
+# BUG FIX #2: Reset all game state when "New Game" is clicked
+# ISSUE: Previous code only reset attempts and secret, but did not reset status or history.
+# This caused the app to stay in "won"/"lost" status and hit st.stop() below, breaking the submit button.
+# SOLUTION: Reset all session state variables to initial values to allow new game to play properly.
 if new_game:
-    st.session_state.attempts = 0
+    # Reset status from "won" or "lost" back to "playing" so the game continues
+    st.session_state.status = "playing"
+    # Clear guess history to start fresh game without previous guesses
+    st.session_state.history = []
+    # Reset attempts to 1 (matches initialization on line 97)
+    st.session_state.attempts = 1
+    # Generate new secret number for the new game
     st.session_state.secret = random.randint(1, 100)
+    # Reset score to 0 for new game
+    st.session_state.score = 0
     st.success("New game started.")
     st.rerun()
 

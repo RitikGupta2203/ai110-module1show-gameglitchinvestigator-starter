@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- /Users/mac/Documents/CODEPATHAI/ai110-module1show-gameglitchinvestigator-starter/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/mac/Documents/CODEPATHAI/ai110-module1show-gameglitchinvestigator-starter
+collecting ... collected 34 items
+
+tests/test_game_logic.py::test_winning_guess PASSED                      [  2%]
+tests/test_game_logic.py::test_guess_too_high PASSED                     [  5%]
+tests/test_game_logic.py::test_guess_too_low PASSED                      [  8%]
+tests/test_game_logic.py::test_parse_guess_valid_integer PASSED          [ 11%]
+tests/test_game_logic.py::test_parse_guess_valid_float PASSED            [ 14%]
+tests/test_game_logic.py::test_parse_guess_empty_string PASSED           [ 17%]
+tests/test_game_logic.py::test_parse_guess_none PASSED                   [ 20%]
+tests/test_game_logic.py::test_parse_guess_invalid_input PASSED          [ 23%]
+tests/test_game_logic.py::test_update_score_win PASSED                   [ 26%]
+tests/test_game_logic.py::test_update_score_win_minimum PASSED           [ 29%]
+tests/test_game_logic.py::test_update_score_too_high_even_attempt PASSED [ 32%]
+tests/test_game_logic.py::test_update_score_too_high_odd_attempt PASSED  [ 35%]
+tests/test_game_logic.py::test_update_score_too_low PASSED               [ 38%]
+tests/test_game_logic.py::test_get_range_easy PASSED                     [ 41%]
+tests/test_game_logic.py::test_get_range_normal PASSED                   [ 44%]
+tests/test_game_logic.py::test_get_range_hard PASSED                     [ 47%]
+tests/test_game_logic.py::test_bug_fix_1_guess_too_high_correct_hint PASSED [ 50%]
+tests/test_game_logic.py::test_bug_fix_1_guess_too_low_correct_hint PASSED [ 52%]
+tests/test_game_logic.py::test_bug_fix_1_multiple_scenarios PASSED       [ 55%]
+tests/test_game_logic.py::test_bug_fix_1_type_error_path PASSED          [ 58%]
+tests/test_game_logic.py::test_bug_fix_1_string_comparison_edge_case PASSED [ 61%]
+tests/test_game_logic.py::test_new_game_state_reset_after_win PASSED     [ 64%]
+tests/test_game_logic.py::test_new_game_state_reset_after_loss PASSED    [ 67%]
+tests/test_game_logic.py::test_status_check_passes_after_new_game PASSED [ 70%]
+tests/test_game_logic.py::test_history_accumulation_bug_fixed PASSED     [ 73%]
+tests/test_game_logic.py::test_bug_fix_3_normal_range_corrected PASSED   [ 76%]
+tests/test_game_logic.py::test_bug_fix_3_hard_range_corrected PASSED     [ 79%]
+tests/test_game_logic.py::test_bug_fix_3_difficulty_scaling_logic PASSED [ 82%]
+tests/test_game_logic.py::test_edge_case_negative_number_parsing PASSED  [ 85%]
+tests/test_game_logic.py::test_edge_case_negative_number_comparison PASSED [ 88%]
+tests/test_game_logic.py::test_edge_case_extremely_large_numbers PASSED  [ 91%]
+tests/test_game_logic.py::test_edge_case_extremely_large_comparison PASSED [ 94%]
+tests/test_game_logic.py::test_edge_case_zero_and_boundary_values PASSED [ 97%]
+tests/test_game_logic.py::test_edge_case_decimal_to_int_conversion PASSED [100%]
+
+============================== 34 passed in 0.62s ==============================

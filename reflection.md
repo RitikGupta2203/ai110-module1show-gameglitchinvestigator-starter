@@ -114,16 +114,32 @@ AI generated the entire test suite with 20+ test cases covering all three bugs w
 ## 4. What did you learn about Streamlit and state?
 
 - In your own words, explain why the secret number kept changing in the original app.
-- How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
-- What change did you make that finally gave the game a stable secret number?
+In Streamlit, every user interaction causes the entire script to rerun from top to bottom.
+Then clicking "Submit Guess", typing text, or changing a slider—any action—would regenerate a new random number. The user would be chasing a moving target!
 
+
+
+- How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
+Streamlit is like a theater stage. Every time someone in the audience coughs, snaps their fingers, or moves, the actors restart the entire scene from the beginning. But they have a magical notebook (session state) that survives across reruns. They write important things in this notebook—like "the secret number is 42"—and no matter how many times the scene restarts, they can check the notebook and remember: "Oh, the secret is still 42."
+
+
+- What change did you make that finally gave the game a stable secret number?
+N/A
 ---
 
 ## 5. Looking ahead: your developer habits
 
 - What is one habit or strategy from this project that you want to reuse in future labs or projects?
-  - This could be a testing habit, a prompting strategy, or a way you used Git.
+- This could be a testing habit, a prompting strategy, or a way you used Git.
+
+
+one habit that i would use to make small commits in git in order to make. This way i can keep track of the changes i did.
+
+
 - What is one thing you would do differently next time you work with AI on a coding task?
+
+i would go through the code on a high level first because getting a summary of the codespace to have a more clear understanding of the code base.
+
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
-
-
+One way of thinking that changed was even though how quickly we can get the task done it is always important to thoroughly checks the bugs. As it happened in the Bug 1:
+AI was able to resolve the issue related to "Go lower /go Higher" but could not figure out the issue of string to int comparison. It was only after manual testing that i could figure out, the problem and then collaborate with the AI for the solution.

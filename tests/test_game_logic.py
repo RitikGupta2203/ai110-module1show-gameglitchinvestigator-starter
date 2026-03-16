@@ -507,3 +507,138 @@ def test_bug_fix_3_difficulty_scaling_logic():
 
     # VERIFIED FIX: These assertions would have FAILED with the buggy ranges
     # because Hard had 1-50 and Normal had 1-100, so hard_range < normal_range would be True (wrong!)
+
+
+# ==================== Challenge 1: Advanced Edge-Case Testing ====================
+# These tests verify the game handles edge cases gracefully:
+# 1. Negative numbers
+# 2. Extremely large values
+# 3. Boundary values (zero, near-boundary numbers)
+
+
+def test_edge_case_negative_number_parsing():
+    """
+    EDGE CASE TEST 1: Verify negative numbers are parsed correctly.
+
+    SCENARIO: User enters a negative number like "-5"
+    - The game should accept and parse negative numbers without crashing
+    - Should convert "-5" to integer -5
+    - Comparison logic should work with negative guesses
+
+    RATIONALE: Some users might accidentally type a negative number,
+    or the game should handle any numeric input gracefully.
+    """
+    ok, guess_int, err = parse_guess("-5")
+    assert ok is True, "Negative numbers should parse successfully"
+    assert guess_int == -5, "Negative numbers should convert correctly"
+    assert err is None, "No error for valid negative number"
+
+
+def test_edge_case_negative_number_comparison():
+    """
+    EDGE CASE TEST 1b: Verify the game handles negative number comparisons.
+
+    SCENARIO: Secret is a positive number (e.g., 10) but user guesses negative (-5)
+    - Should correctly identify that -5 < 10
+    - Should return "Too Low" with "Go HIGHER" hint
+    """
+    secret = 10
+    guess = -5
+    outcome, message = check_guess(guess, secret)
+    assert outcome == "Too Low", f"Negative guess {guess} < positive secret {secret} should be 'Too Low'"
+    assert message == "📈 Go HIGHER!", "Negative number too low should prompt to go higher"
+
+
+def test_edge_case_extremely_large_numbers():
+    """
+    EDGE CASE TEST 2: Verify the game handles extremely large numbers gracefully.
+
+    SCENARIO: User enters a very large number like 999999 (way beyond any difficulty range)
+    - The game should accept and parse it without crashing
+    - Comparison should work correctly (e.g., 999999 > any secret)
+    - Should return appropriate "Too High" message
+
+    RATIONALE: Testing bounds/overflow protection. If secret is 50 and user guesses 999999,
+    the game should handle it gracefully and provide correct feedback.
+    """
+    ok, guess_int, err = parse_guess("999999")
+    assert ok is True, "Extremely large numbers should parse successfully"
+    assert guess_int == 999999, "Large numbers should convert correctly"
+    assert err is None, "No error for large valid number"
+
+
+def test_edge_case_extremely_large_comparison():
+    """
+    EDGE CASE TEST 2b: Verify comparison with extremely large guess.
+
+    SCENARIO: Secret is 50 (Normal difficulty range) but user guesses 999999
+    - Should correctly identify that 999999 > 50
+    - Should return "Too High" with appropriate message
+    - Game should not crash or behave unexpectedly
+    """
+    secret = 50
+    guess = 999999
+    outcome, message = check_guess(guess, secret)
+    assert outcome == "Too High", f"Huge guess {guess} > secret {secret} should be 'Too High'"
+    assert message == "📉 Go LOWER!", "Extremely high guess should prompt to go lower"
+
+
+def test_edge_case_zero_and_boundary_values():
+    """
+    EDGE CASE TEST 3: Verify the game handles boundary values (0, 1, at edge of ranges).
+
+    SCENARIO: Test critical boundary values
+    - 0: Just below the minimum of any range (1-20, 1-50, 1-100)
+    - 1: Minimum value in all ranges
+    - 20: Maximum of Easy, minimum of Normal, way below Hard
+    - 100: Maximum of Hard range
+
+    RATIONALE: Boundary values often reveal off-by-one errors or edge case bugs.
+    """
+    # Test 0 (below minimum)
+    ok, guess_int, err = parse_guess("0")
+    assert ok is True, "Zero should parse successfully"
+    assert guess_int == 0, "Zero should convert correctly"
+
+    # Test boundary comparison: 0 < secret should be "Too Low"
+    secret = 50
+    outcome, message = check_guess(0, secret)
+    assert outcome == "Too Low", "Zero < any positive secret should be 'Too Low'"
+    assert message == "📈 Go HIGHER!", "Guess of 0 should prompt to go higher"
+
+    # Test lower boundary: guess at 1 (minimum value in all ranges)
+    outcome, message = check_guess(1, 10)
+    assert outcome == "Too Low", "1 < 10 should be 'Too Low'"
+
+    # Test upper boundary: guess at 100 (Hard's maximum)
+    outcome, message = check_guess(100, 50)
+    assert outcome == "Too High", "100 > 50 should be 'Too High'"
+    assert message == "📉 Go LOWER!", "Boundary high guess should prompt lower"
+
+
+def test_edge_case_decimal_to_int_conversion():
+    """
+    EDGE CASE TEST 3b: Verify decimal numbers are converted to integers correctly.
+
+    SCENARIO: User enters decimal numbers like "10.9" or "10.1"
+    - Both should truncate/convert to 10 (using int(float(x)))
+    - Should not round up or down, just convert
+    - Should handle negative decimals like "-5.8" correctly
+
+    RATIONALE: Users might enter decimal numbers; the game should handle gracefully
+    by converting to integers.
+    """
+    # Positive decimal
+    ok, guess_int, err = parse_guess("10.9")
+    assert ok is True, "Decimal 10.9 should parse"
+    assert guess_int == 10, "10.9 should truncate to 10, not round to 11"
+
+    # Another decimal
+    ok, guess_int, err = parse_guess("49.5")
+    assert ok is True, "Decimal 49.5 should parse"
+    assert guess_int == 49, "49.5 should truncate to 49"
+
+    # Negative decimal
+    ok, guess_int, err = parse_guess("-5.8")
+    assert ok is True, "Negative decimal should parse"
+    assert guess_int == -5, "Negative decimal should truncate correctly"

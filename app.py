@@ -29,24 +29,33 @@ def parse_guess(raw: str):
 
     return True, value, None
 
-
+#FIX: Collaboration with AI:
+# gave AI proper prompt to understand the logic of the code.
+#Used claude AI to accurately refactor the code generate test cases that test the code.
+# Manually, verified the code if it solves the bug  
 def check_guess(guess, secret):
     if guess == secret:
         return "Win", "🎉 Correct!"
 
     try:
-        # FIXME: Logic breaks here
+        # FIXED: Bug #1 - Hint logic was backwards. When guess > secret, user should go LOWER (not higher)
+        # and when guess < secret, user should go HIGHER (not lower)
+        # Original code had inverted messages which confused players with incorrect guidance
         if guess > secret:
-            return "Too High", "📈 Go HIGHER!"
+            # OLD: return "Too High", "📈 Go HIGHER!"  # INCORRECT: said go higher when already too high
+            return "Too High", "📉 Go LOWER!"  # CORRECT: guide user to guess lower
         else:
-            return "Too Low", "📉 Go LOWER!"
+            # OLD: return "Too Low", "📉 Go LOWER!"  # INCORRECT: said go lower when already too low
+            return "Too Low", "📈 Go HIGHER!"  # CORRECT: guide user to guess higher
     except TypeError:
         g = str(guess)
         if g == secret:
             return "Win", "🎉 Correct!"
         if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
+            # OLD: return "Too High", "📈 Go HIGHER!"  # INCORRECT: said go higher when already too high
+            return "Too High", "📉 Go LOWER!"  # CORRECT: guide user to guess lower
+        # OLD: return "Too Low", "📉 Go LOWER!"  # INCORRECT: said go lower when already too low
+        return "Too Low", "📈 Go HIGHER!"  # CORRECT: guide user to guess higher
 
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
@@ -132,6 +141,13 @@ with col2:
     new_game = st.button("New Game 🔁")
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
+
+
+#FIX: Collaboration with AI:
+# gave AI proper prompt to understand the logic of the code.
+#Used claude AI to accurately refactor the code generate test cases that test the code.
+# Manually, verified the code if it solves the bug  
+
 
 # BUG FIX #2: Reset all game state when "New Game" is clicked
 # ISSUE: Previous code only reset attempts and secret, but did not reset status or history.

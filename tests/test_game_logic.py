@@ -20,19 +20,21 @@ def test_winning_guess():
 
 
 def test_guess_too_high():
-    """Test that a guess higher than secret returns 'Too High' outcome."""
-    # If secret is 50 and guess is 60, hint should be "Too High"
+    """Test that a guess higher than secret returns 'Too High' outcome with correct hint."""
+    # If secret is 50 and guess is 60, hint should be "Go LOWER" (not "Go HIGHER")
+    # BUG FIX #1: This was backwards before - was saying "Go HIGHER" when already too high
     outcome, message = check_guess(60, 50)
     assert outcome == "Too High"
-    assert message == "📈 Go HIGHER!"
+    assert message == "📉 Go LOWER!"  # FIXED: Now correctly advises to go lower
 
 
 def test_guess_too_low():
-    """Test that a guess lower than secret returns 'Too Low' outcome."""
-    # If secret is 50 and guess is 40, hint should be "Too Low"
+    """Test that a guess lower than secret returns 'Too Low' outcome with correct hint."""
+    # If secret is 50 and guess is 40, hint should be "Go HIGHER" (not "Go LOWER")
+    # BUG FIX #1: This was backwards before - was saying "Go LOWER" when already too low
     outcome, message = check_guess(40, 50)
     assert outcome == "Too Low"
-    assert message == "📉 Go LOWER!"
+    assert message == "📈 Go HIGHER!"  # FIXED: Now correctly advises to go higher
 
 
 # ==================== Additional Game Logic Tests ====================
@@ -133,7 +135,96 @@ def test_get_range_hard():
     assert high == 50
 
 
-# ==================== BUG FIX #2 Tests ====================
+# ==================== BUG FIX #1 Tests ====================
+# These tests specifically target the bug fixed in app.py lines 38-55
+# Bug: check_guess() was returning backwards hint messages
+#      - When guess > secret (too high), it said "Go HIGHER" instead of "Go LOWER"
+#      - When guess < secret (too low), it said "Go LOWER" instead of "Go HIGHER"
+# Fix: Swapped the hint messages in both try and except blocks
+
+
+def test_bug_fix_1_guess_too_high_correct_hint():
+    """
+    TEST FOR BUG FIX #1: Verify correct hint when guess is too high.
+
+    SCENARIO: Secret is 12, guess is 10 (referring to original bug report)
+    - Guess (10) > Secret (12)? No, so goes to else block
+
+    BUG BEHAVIOR: Would return "📉 Go LOWER!" (said go lower when already too low)
+    FIXED BEHAVIOR: Now returns "📈 Go HIGHER!" (correctly says go higher)
+    """
+    secret = 12
+    guess = 10
+    outcome, message = check_guess(guess, secret)
+    assert outcome == "Too Low", f"Guess {guess} < Secret {secret} should be 'Too Low'"
+    assert message == "📈 Go HIGHER!", f"When too low, should get 'Go HIGHER', got {message}"
+
+
+def test_bug_fix_1_guess_too_low_correct_hint():
+    """
+    TEST FOR BUG FIX #1: Verify correct hint when guess is too low.
+
+    SCENARIO: Secret is 12, guess is 15
+    - Guess (15) > Secret (12)? Yes
+
+    BUG BEHAVIOR: Would return "📈 Go HIGHER!" (said go higher when already too high)
+    FIXED BEHAVIOR: Now returns "📉 Go LOWER!" (correctly says go lower)
+    """
+    secret = 12
+    guess = 15
+    outcome, message = check_guess(guess, secret)
+    assert outcome == "Too High", f"Guess {guess} > Secret {secret} should be 'Too High'"
+    assert message == "📉 Go LOWER!", f"When too high, should get 'Go LOWER', got {message}"
+
+
+def test_bug_fix_1_multiple_scenarios():
+    """
+    TEST FOR BUG FIX #1: Test multiple guess/secret combinations.
+
+    This test verifies the fix works consistently across different number ranges.
+    """
+    test_cases = [
+        # (secret, guess, expected_outcome, expected_emoji_direction)
+        (50, 60, "Too High", "📉"),      # Guess too high → should say Go LOWER
+        (50, 40, "Too Low", "📈"),       # Guess too low → should say Go HIGHER
+        (100, 50, "Too Low", "📈"),      # Edge case: guess way too low
+        (1, 50, "Too High", "📉"),       # Edge case: guess way too high
+        (75, 75, "Win", None),           # Exact match (emoji not checked)
+    ]
+
+    for secret, guess, expected_outcome, expected_emoji in test_cases:
+        outcome, message = check_guess(guess, secret)
+        assert outcome == expected_outcome, \
+            f"Secret={secret}, Guess={guess}: expected outcome '{expected_outcome}', got '{outcome}'"
+
+        if expected_outcome != "Win" and expected_emoji:
+            assert message.startswith(expected_emoji), \
+                f"Secret={secret}, Guess={guess}: expected message to start with '{expected_emoji}', got '{message}'"
+
+
+def test_bug_fix_1_type_error_path():
+    """
+    TEST FOR BUG FIX #1: Verify hint fix works in the TypeError exception path.
+
+    This tests the except TypeError block (lines 47-55 in app.py) which handles
+    the scenario where guess is int but secret is string.
+    """
+    secret_as_string = "50"
+
+    # Test too high in TypeError path
+    guess_too_high = 60
+    outcome, message = check_guess(guess_too_high, secret_as_string)
+    assert outcome == "Too High"
+    assert message == "📉 Go LOWER!", "TypeError path should also have correct hint for too high"
+
+    # Test too low in TypeError path
+    guess_too_low = 40
+    outcome, message = check_guess(guess_too_low, secret_as_string)
+    assert outcome == "Too Low"
+    assert message == "📈 Go HIGHER!", "TypeError path should also have correct hint for too low"
+
+
+
 # These tests specifically target the bug fixed in app.py lines 135-151
 # Bug: After clicking "New Game", status wasn't reset, causing st.stop() to be hit
 # Fix: Reset status, history, attempts, secret, and score on New Game

@@ -8,9 +8,10 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 - List at least two concrete bugs you noticed at the start  
   (for example: "the secret number kept changing" or "the hints were backwards").
 
-1. the hints were backwards. As noted, if my secret number was 12 and guessed number was 10. the hint section displayed "go lower"  and vice-versa
-  Screenshot: ![alt text](Bugs/Bug1.png)
-  Ideal Behaviour: The ideal hint in that case should be "go higher" as the guessed number was smaller than the secret.
+1. the hints were backwards.for example: if my secret number was 12 and guessed number was 10. the hint section displayed "go lower"  and vice-versa
+Screenshot: ![alt text](Bugs/Bug1.png)
+
+Ideal Behaviour: The ideal hint in that case should be "go higher" as the guessed number was smaller than the secret.
 
 AI EXPLAINATION:
   The hint messages are backwards. Here's what happens with your example (secret=12, guess=10):

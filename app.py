@@ -1,14 +1,22 @@
 import random
 import streamlit as st
 
-# FIXME: Logic breaks here
+#FIX: Collaboration with AI:
+# gave AI proper prompt to understand the logic of the code.
+# Used claude AI to accurately refactor the code  and generate test cases that test the code.
+# Manually, verified the code if it solves the bug
+
+# BUG FIX #3: Fixed swapped difficulty ranges
+# ISSUE: Normal (1-100) and Hard (1-50) ranges were inverted
+# This broke the difficulty scaling logic where easier levels have smaller ranges + more attempts
+# SOLUTION: Swap the return values for Normal and Hard to match intended difficulty
 def get_range_for_difficulty(difficulty: str):
     if difficulty == "Easy":
-        return 1, 20
+        return 1, 20  # ✓ Easy: 1-20 range, 6 attempts
     if difficulty == "Normal":
-        return 1, 100
+        return 1, 50  # ✓ Normal: 1-50 range, 8 attempts
     if difficulty == "Hard":
-        return 1, 50
+        return 1, 100  # ✓ Hard: 1-100 range, 5 attempts
     return 1, 100
 
 
@@ -149,7 +157,7 @@ with col3:
 # Manually, verified the code if it solves the bug  
 
 
-# BUG FIX #2: Reset all game state when "New Game" is clicked
+# BUG FIX : Reset all game state when "New Game" is clicked
 # ISSUE: Previous code only reset attempts and secret, but did not reset status or history.
 # This caused the app to stay in "won"/"lost" status and hit st.stop() below, breaking the submit button.
 # SOLUTION: Reset all session state variables to initial values to allow new game to play properly.
@@ -160,8 +168,11 @@ if new_game:
     st.session_state.history = []
     # Reset attempts to 1 (matches initialization on line 97)
     st.session_state.attempts = 1
-    # Generate new secret number for the new game
-    st.session_state.secret = random.randint(1, 100)
+    # Generate new secret number for the new game using correct difficulty range
+    # FIXED: Changed from hardcoded random.randint(1, 100) to use get_range_for_difficulty()
+    # OLD: st.session_state.secret = random.randint(1, 100)  # ❌ Always used 1-100, ignored difficulty
+    new_low, new_high = get_range_for_difficulty(difficulty)
+    st.session_state.secret = random.randint(new_low, new_high)  # ✓ Uses correct range for current difficulty
     # Reset score to 0 for new game
     st.session_state.score = 0
     st.success("New game started.")

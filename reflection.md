@@ -31,6 +31,16 @@ AI EXPLAINATION:
               3.Hard: ![alt text](Bugs/Bug3.3.png)
   Ideal Behaviour: it should be Easy: 1-20 (6 attempts), Normal: 1-50 (8 attempts), Hard: 1-100 (5 attempts)
 
+AI explainations:
+  The game uses an inverse difficulty scaling pattern:
+
+  Easier levels → Smaller range + More attempts (easier to guess)
+  Harder levels → Larger range + Fewer attempts (harder to guess)
+  Currently, the ranges are swapped between Normal and Hard, breaking this logic.
+
+
+
+
 3. once we win the game, the new game Button gives the new secret number but submit guess button doesn't work and the array having all the previous game values doesn't reset to start from beginning.  
   Screenshot: 1.Game Won: ![alt text](Bugs/Bug2.1.png) 
               2.New Game:![alt text](Bugs/Bug2.2.png)

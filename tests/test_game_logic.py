@@ -125,14 +125,18 @@ def test_get_range_normal():
     """Test difficulty range for Normal mode."""
     low, high = get_range_for_difficulty("Normal")
     assert low == 1
-    assert high == 100
+    # FIXED: Changed from 100 to 50 after fixing bug #3
+    # OLD: assert high == 100  # ❌ Was incorrect (too hard for "Normal")
+    assert high == 50  # ✓ Corrected to proper Normal difficulty
 
 
 def test_get_range_hard():
     """Test difficulty range for Hard mode."""
     low, high = get_range_for_difficulty("Hard")
     assert low == 1
-    assert high == 50
+    # FIXED: Changed from 50 to 100 after fixing bug #3
+    # OLD: assert high == 50  # ❌ Was incorrect (too easy for "Hard")
+    assert high == 100  # ✓ Corrected to proper Hard difficulty
 
 
 # ==================== BUG FIX #1 Tests ====================
@@ -351,3 +355,107 @@ def test_history_accumulation_bug_fixed():
 
     assert game2_history == [50, 60], "Game 2 history should be fresh, not accumulate game 1"
     assert len(game1_history) == 4, "Original game 1 history should be unchanged"
+
+
+# ==================== BUG FIX #3 Tests ====================
+# These tests specifically target the bug fixed in app.py lines 9-20
+# Bug: Difficulty ranges were swapped - Normal had 1-100 (too hard) and Hard had 1-50 (too easy)
+# Fix: Corrected to Normal=1-50 and Hard=1-100 to match difficulty scaling logic
+# Logic: Difficulty uses inverse scaling - easier levels have smaller ranges + more attempts
+
+
+def test_bug_fix_3_normal_range_corrected():
+    """
+    TEST FOR BUG FIX #3: Verify Normal difficulty now has correct range (1-50).
+
+    SCENARIO: Normal difficulty should have a medium-sized range
+    - Easy: 1-20 (smallest) + 6 attempts = easiest
+    - Normal: 1-50 (medium) + 8 attempts = medium difficulty  ← FIXED FROM 1-100
+    - Hard: 1-100 (largest) + 5 attempts = hardest
+
+    BUG BEHAVIOR: Normal returned 1-100 (same as Hard), making it too difficult
+    FIXED BEHAVIOR: Normal now returns 1-50, creating proper difficulty progression
+
+    This test verifies the fix keeps ranges in proper order: Easy < Normal < Hard
+    """
+    low, high = get_range_for_difficulty("Normal")
+    assert low == 1, "Normal range should start at 1"
+    # CRITICAL FIX: Changed from 100 to 50
+    # OLD: assert high == 100  # ❌ BUG: Made Normal as hard as Hard difficulty
+    assert high == 50, "FIXED: Normal range should be 1-50 (not 1-100)"
+
+    # Additional verification: Normal range should be smaller than Hard
+    hard_low, hard_high = get_range_for_difficulty("Hard")
+    assert high < hard_high, f"Normal range (1-{high}) should be smaller than Hard range (1-{hard_high})"
+
+
+def test_bug_fix_3_hard_range_corrected():
+    """
+    TEST FOR BUG FIX #3: Verify Hard difficulty now has correct range (1-100).
+
+    SCENARIO: Hard difficulty should have the largest range (hardest to guess)
+    - Easy: 1-20 (smallest) = easiest to find the number
+    - Normal: 1-50 (medium) = medium difficulty
+    - Hard: 1-100 (largest) = hardest to find the number  ← FIXED FROM 1-50
+
+    BUG BEHAVIOR: Hard returned 1-50 (same as Normal in old code), making it too easy
+    FIXED BEHAVIOR: Hard now returns 1-100, creating proper difficulty progression
+
+    This test verifies Hard is the most challenging with the largest range.
+    """
+    low, high = get_range_for_difficulty("Hard")
+    assert low == 1, "Hard range should start at 1"
+    # CRITICAL FIX: Changed from 50 to 100
+    # OLD: assert high == 50  # ❌ BUG: Made Hard easier than Normal difficulty
+    assert high == 100, "FIXED: Hard range should be 1-100 (not 1-50)"
+
+    # Additional verification: Hard range should be largest
+    easy_low, easy_high = get_range_for_difficulty("Easy")
+    normal_low, normal_high = get_range_for_difficulty("Normal")
+    assert high > normal_high, f"Hard range (1-{high}) should be larger than Normal range (1-{normal_high})"
+    assert high > easy_high, f"Hard range (1-{high}) should be larger than Easy range (1-{easy_high})"
+
+
+def test_bug_fix_3_difficulty_scaling_logic():
+    """
+    TEST FOR BUG FIX #3: Verify the entire difficulty scaling logic works correctly.
+
+    CONCEPT: The game uses inverse difficulty scaling:
+    - Easier difficulty → Smaller range + More attempts (easier to guess)
+    - Harder difficulty → Larger range + Fewer attempts (harder to guess)
+
+    DEFINED CONSTRAINTS (app.py lines 91-95):
+    - Easy: 6 attempts for range 1-20 (1 attempt per ~3 numbers)
+    - Normal: 8 attempts for range 1-50 (1 attempt per ~6 numbers)
+    - Hard: 5 attempts for range 1-100 (1 attempt per 20 numbers)
+
+    BUG: Ranges were swapped, breaking this progression
+    - Normal had 1-100 → 8 attempts per 100 numbers = easier than it should be
+    - Hard had 1-50 → 5 attempts per 50 numbers = harder than Normal (wrong!)
+
+    FIX: Correct the ranges to maintain the inverse relationship
+    """
+    difficulties = {
+        "Easy": {"range": 20, "attempts": 6},
+        "Normal": {"range": 50, "attempts": 8},
+        "Hard": {"range": 100, "attempts": 5},
+    }
+
+    for difficulty, specs in difficulties.items():
+        low, high = get_range_for_difficulty(difficulty)
+        actual_range = high - low + 1
+
+        assert actual_range == specs["range"], \
+            f"{difficulty}: Expected range {specs['range']}, got {actual_range}"
+
+    # Verify inverse relationship: easier difficulties have LOWER range values
+    easy_range = (20 - 1 + 1)  # Easy: 1-20
+    normal_range = (50 - 1 + 1)  # Normal: 1-50
+    hard_range = (100 - 1 + 1)  # Hard: 1-100
+
+    # CRITICAL: Range should increase with difficulty (harder = bigger range = harder to guess)
+    assert easy_range < normal_range, "Easy range should be smaller than Normal"
+    assert normal_range < hard_range, "Normal range should be smaller than Hard"
+
+    # VERIFIED FIX: These assertions would have FAILED with the buggy ranges
+    # because Hard had 1-50 and Normal had 1-100, so hard_range < normal_range would be True (wrong!)

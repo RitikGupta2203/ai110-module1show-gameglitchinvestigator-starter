@@ -56,14 +56,28 @@ def check_guess(guess, secret):
             # OLD: return "Too Low", "📉 Go LOWER!"  # INCORRECT: said go lower when already too low
             return "Too Low", "📈 Go HIGHER!"  # CORRECT: guide user to guess higher
     except TypeError:
-        g = str(guess)
-        if g == secret:
-            return "Win", "🎉 Correct!"
-        if g > secret:
-            # OLD: return "Too High", "📈 Go HIGHER!"  # INCORRECT: said go higher when already too high
-            return "Too High", "📉 Go LOWER!"  # CORRECT: guide user to guess lower
-        # OLD: return "Too Low", "📉 Go LOWER!"  # INCORRECT: said go lower when already too low
-        return "Too Low", "📈 Go HIGHER!"  # CORRECT: guide user to guess higher
+        # BUG FIX #1b: TypeError path had string comparison bug
+        # ISSUE: When secret is string and guess is int, string comparison is lexicographic not numeric
+        # Example: "10" < "8" as strings (because "1" < "8"), but 10 > 8 as numbers
+        # SOLUTION: Convert both to int before comparing
+        try:
+            guess_num = int(guess)
+            secret_num = int(secret)
+            if guess_num == secret_num:
+                return "Win", "🎉 Correct!"
+            if guess_num > secret_num:
+                # OLD: return "Too High", "📈 Go HIGHER!"  # INCORRECT: said go higher when already too high
+                return "Too High", "📉 Go LOWER!"  # CORRECT: guide user to guess lower
+            # OLD: return "Too Low", "📉 Go LOWER!"  # INCORRECT: said go lower when already too low
+            return "Too Low", "📈 Go HIGHER!"  # CORRECT: guide user to guess higher
+        except (ValueError, TypeError):
+            # Fallback for non-numeric string comparison (original behavior)
+            g = str(guess)
+            if g == secret:
+                return "Win", "🎉 Correct!"
+            if g > secret:
+                return "Too High", "📉 Go LOWER!"
+            return "Too Low", "📈 Go HIGHER!"
 
 
 def update_score(current_score: int, outcome: str, attempt_number: int):

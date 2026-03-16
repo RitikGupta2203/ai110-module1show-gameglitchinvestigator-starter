@@ -210,22 +210,70 @@ def test_bug_fix_1_type_error_path():
     """
     TEST FOR BUG FIX #1: Verify hint fix works in the TypeError exception path.
 
-    This tests the except TypeError block (lines 47-55 in app.py) which handles
-    the scenario where guess is int but secret is string.
+    This tests the except TypeError block which handles the scenario where
+    guess is int but secret is string (happens on even attempts in app.py line 200).
+
+    CRITICAL BUG DISCOVERED: String comparison is lexicographic, not numeric!
+    - "10" > "8" as strings? NO! Because "1" < "8" in ASCII
+    - This caused (guess_int=10, secret_str="8") to incorrectly return "Go HIGHER"
+
+    EXAMPLE: Secret=8, Guess=10 on even attempt
+    - Line 200: secret = str(st.session_state.secret) -> "8"
+    - Line 204: check_guess(10, "8") raises TypeError
+    - OLD BUG: String comparison "10" < "8" (lexicographic) = TRUE
+    - OLD BUG: Returns "Go HIGHER!" (WRONG!)
+    - FIX: Convert both to int, compare numerically = 10 > 8
+    - FIXED: Returns "Go LOWER!" (CORRECT!)
     """
     secret_as_string = "50"
 
-    # Test too high in TypeError path
+    # Test too high in TypeError path (numeric comparison)
     guess_too_high = 60
     outcome, message = check_guess(guess_too_high, secret_as_string)
     assert outcome == "Too High"
-    assert message == "📉 Go LOWER!", "TypeError path should also have correct hint for too high"
+    assert message == "📉 Go LOWER!", "TypeError path should do numeric comparison, not string lexicographic"
 
-    # Test too low in TypeError path
+    # Test too low in TypeError path (numeric comparison)
     guess_too_low = 40
     outcome, message = check_guess(guess_too_low, secret_as_string)
     assert outcome == "Too Low"
-    assert message == "📈 Go HIGHER!", "TypeError path should also have correct hint for too low"
+    assert message == "📈 Go HIGHER!", "TypeError path should do numeric comparison, not string lexicographic"
+
+
+def test_bug_fix_1_string_comparison_edge_case():
+    """
+    TEST FOR BUG FIX #1b: Verify numeric comparison in TypeError path, not lexicographic.
+
+    CRITICAL EDGE CASE: This test would have FAILED with the old code!
+
+    When secret="8" and guess=10:
+    - OLD BUG (string comparison): "10" > "8"?
+      - Compares "1" (ASCII 49) with "8" (ASCII 56)
+      - "1" < "8", so "10" < "8" = TRUE
+      - Returns "Too Low", "Go HIGHER!" ❌ WRONG!
+
+    - FIXED (numeric comparison): int("10") > int("8")?
+      - 10 > 8 = TRUE
+      - Returns "Too High", "Go LOWER!" ✓ CORRECT!
+    """
+    # This is the exact scenario that was broken
+    secret_as_string = "8"
+    guess = 10
+
+    outcome, message = check_guess(guess, secret_as_string)
+
+    # CRITICAL ASSERTIONS
+    assert outcome == "Too High", \
+        f"Guess {guess} > Secret {secret_as_string}: Should be 'Too High' (numeric comparison, not lexicographic)"
+    assert message == "📉 Go LOWER!", \
+        f"When guess 10 > secret '8', should say 'Go LOWER', not 'Go HIGHER' (lexicographic bug)"
+
+    # Verify the opposite case too
+    secret_as_string_2 = "50"
+    guess_2 = 10
+    outcome_2, message_2 = check_guess(guess_2, secret_as_string_2)
+    assert outcome_2 == "Too Low"
+    assert message_2 == "📈 Go HIGHER!"
 
 
 
